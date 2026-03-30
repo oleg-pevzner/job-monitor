@@ -2,7 +2,7 @@
 
 Search LinkedIn, Indeed, USAJobs, and Google Jobs from the command line. Deduplicates across sources so you only see new postings. Stores results in SQLite. Optionally sends email digests.
 
-Works as a CLI, as composable JSON pipes, or as an [MCP server](#mcp-server) for AI agents.
+Non-interactive, JSON-pipeable, and ships with an [MCP server](#mcp-server) so AI agents can use it too.
 
 ## Quick start
 
@@ -56,7 +56,7 @@ job-monitor jobs list --db ./jobs.db --since 7d --output json
 
 ## MCP server
 
-Runs as a stdio MCP server for Claude Code, Cursor, and other agents.
+Also runs as a stdio MCP server, so AI agents (Claude Code, Cursor, etc.) can call it directly.
 
 ```bash
 # One-command setup for Claude Code
