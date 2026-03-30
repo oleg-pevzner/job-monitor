@@ -1,6 +1,6 @@
 # job-monitor
 
-Search LinkedIn, Indeed, USAJobs, and Google Jobs from the command line. Deduplicates across sources so you only see new postings. Stores results in SQLite. Optionally sends email digests.
+Search LinkedIn, Indeed, USAJobs, and Google Jobs from the command line. Deduplicates across sources so you only see new postings. Optionally finds hiring manager emails and drafts personalized outreach for each posting.
 
 Non-interactive, JSON-pipeable, and ships with an [MCP server](#mcp-server) so AI agents can use it too.
 
