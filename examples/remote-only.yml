@@ -1,0 +1,43 @@
+# Remote-only job search
+# Demonstrates location filtering and salary caps
+
+name: "Remote Jobs Search"
+
+sources:
+  - linkedin
+  - google_jobs
+
+search_queries:
+  - "Software Engineer Remote"
+  - "Backend Developer Remote"
+  - "DevOps Engineer Remote"
+
+locations:
+  - "United States"
+
+jobs_per_search: 20
+
+filters:
+  title_keywords:
+    - software
+    - backend
+    - devops
+    - infrastructure
+    - platform
+    - cloud
+  title_exclude:
+    - senior
+    - staff
+    - principal
+    - director
+    - intern
+    - contractor
+  location_allow:
+    - remote
+    - anywhere
+    - united states
+  # salary_max_annual: 200000
+
+storage:
+  backend: sqlite
+  path: ./remote-jobs.db

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "job-monitor"
+version = "0.1.0"
+description = "Agent-friendly job monitoring across LinkedIn, Indeed, USAJobs, and Google Jobs"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Oleg Pevzner" }]
+keywords = ["jobs", "job-search", "monitoring", "mcp", "agent", "cli"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business",
+]
+dependencies = [
+    "requests",
+    "python-dotenv",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+email = ["resend"]
+sheets = [
+    "google-auth>=2.0",
+    "google-auth-oauthlib>=1.0",
+    "google-api-python-client>=2.0",
+]
+enrichment = ["anthropic", "requests"]
+supabase = ["supabase"]
+mcp = ["mcp[cli]"]
+all = ["job-monitor[email,sheets,enrichment,supabase,mcp]"]
+
+[project.scripts]
+job-monitor = "job_monitor.cli:main"
+
+[project.urls]
+Repository = "https://github.com/oleg-pevzner/job-monitor"

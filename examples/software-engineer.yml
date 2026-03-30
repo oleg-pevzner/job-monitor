@@ -1,0 +1,47 @@
+# Software Engineer job search
+# Searches LinkedIn + Indeed for SWE roles in two major tech hubs
+
+name: "Software Engineer Search"
+
+sources:
+  - linkedin
+  - indeed
+
+search_queries:
+  - "Software Engineer"
+  - "Backend Engineer"
+  - "Full Stack Engineer"
+
+locations:
+  - "San Francisco Bay Area"
+  - "New York City Metropolitan Area"
+
+jobs_per_search: 15
+
+filters:
+  title_keywords:
+    - software engineer
+    - backend
+    - fullstack
+    - full stack
+    - full-stack
+  title_exclude:
+    - senior
+    - staff
+    - principal
+    - director
+    - manager
+    - lead
+  # company_exclude: []
+
+storage:
+  backend: sqlite
+  path: ./jobs.db
+
+# Uncomment to enable email notifications
+# notifications:
+#   email:
+#     to: you@example.com
+#     from: jobs@yourdomain.com
+#     subject_prefix: "SWE"
+#     accent_color: "#0066cc"

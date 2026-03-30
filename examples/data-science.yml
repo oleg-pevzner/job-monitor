@@ -1,0 +1,50 @@
+# Data Science job search
+# Uses all 4 sources including USAJobs for government data roles
+
+name: "Data Science Search"
+
+sources:
+  - linkedin
+  - indeed
+  - usajobs
+  - google_jobs
+
+search_queries:
+  - "Data Scientist"
+  - "Machine Learning Engineer"
+  - "Data Analyst"
+  - "ML Engineer"
+
+locations:
+  - "San Francisco Bay Area"
+  - "Seattle"
+  - "Washington DC"
+
+jobs_per_search: 10
+
+filters:
+  title_keywords:
+    - data scientist
+    - machine learning
+    - ml engineer
+    - data analyst
+    - data engineer
+    - nlp
+    - deep learning
+  title_exclude:
+    - senior
+    - staff
+    - principal
+    - director
+    - intern
+
+storage:
+  backend: sqlite
+  path: ./data-science-jobs.db
+
+# notifications:
+#   email:
+#     to: you@example.com
+#     from: jobs@yourdomain.com
+#     subject_prefix: "Data Science"
+#     accent_color: "#7b1fa2"

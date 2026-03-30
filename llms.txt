@@ -1,0 +1,32 @@
+# job-monitor
+
+> Automated job monitoring across LinkedIn, Indeed, USAJobs, and Google Jobs.
+
+## What it does
+
+Searches 4 job boards via Apify actors, deduplicates results across sources
+using normalized title+company keys, stores new postings in SQLite, and
+optionally sends email digests of new jobs. Runs on GitHub Actions cron for
+free, zero ongoing maintenance.
+
+## How to use it
+
+CLI: job-monitor run --config config.yml
+CLI (dry run): job-monitor run --config config.yml --dry-run
+CLI (search only): job-monitor search --query "Software Engineer" --location "SF Bay Area" --source linkedin
+MCP: job-monitor mcp (stdio MCP server for AI agents)
+Python: from job_monitor.pipeline import run
+
+## Key concepts
+
+- Config-driven: YAML files define search queries, locations, filters, and notifications
+- 3-layer dedup: cross-source title+company matching, database check, company proximity
+- Composable: search | dedup | store | notify can be piped independently via JSON stdin/stdout
+- Agent-friendly: non-interactive, --output json, fail-fast errors with corrective examples
+- Storage: SQLite by default (zero config), Supabase optional for cloud
+
+## Requirements
+
+- Python 3.10+
+- APIFY_API_TOKEN (free tier available at https://console.apify.com)
+- Optional: RESEND_API_KEY for email, Google OAuth for Sheets, PROSPEO_API_KEY for enrichment

@@ -1,0 +1,50 @@
+# Job Monitor - Daily Cron
+#
+# Runs your job search daily and emails new results.
+# Set up:
+#   1. Add APIFY_API_TOKEN to repo secrets (required)
+#   2. Add RESEND_API_KEY to repo secrets (for email notifications)
+#   3. Edit the config file path below
+#
+# Get a free Apify token: https://console.apify.com/sign-up
+# Get a free Resend key: https://resend.com
+
+name: Job Monitor
+
+on:
+  schedule:
+    # Runs daily at 7:15 AM Pacific (14:15 UTC)
+    - cron: "15 14 * * *"
+  workflow_dispatch: # Allow manual runs
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -e ".[email]"
+
+      - name: Run job monitor
+        env:
+          APIFY_API_TOKEN: ${{ secrets.APIFY_API_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          # Uncomment for Google Sheets integration:
+          # GOOGLE_TOKEN_JSON: ${{ secrets.GOOGLE_TOKEN_JSON }}
+          # GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          # Uncomment for decision-maker enrichment:
+          # PROSPEO_API_KEY: ${{ secrets.PROSPEO_API_KEY }}
+          # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: job-monitor run --config config.yml
+
+      - name: Upload database
+        uses: actions/upload-artifact@v4
+        with:
+          name: jobs-db
+          path: ./jobs.db
+          retention-days: 30
