@@ -1,25 +1,18 @@
 # job-monitor
 
-Automated job monitoring across LinkedIn, Indeed, USAJobs, and Google Jobs. Get daily email digests of only new postings. Runs free on GitHub Actions.
+Search LinkedIn, Indeed, USAJobs, and Google Jobs from the command line. Deduplicates across sources so you only see new postings. Stores results in SQLite. Optionally sends email digests.
 
-**Built for AI agents.** Every command is non-interactive, composable via JSON pipes, and includes `--help` with examples. Ships with a built-in [MCP server](#mcp-server) so Claude Code, Cursor, and other agents can use it as a tool.
-
-## Why?
-
-Job boards show you the same results every day. This tool remembers what you've already seen and only shows you what's new. It searches 4 job boards simultaneously and deduplicates across all of them with 3 layers of matching.
+Works as a CLI, as composable JSON pipes, or as an [MCP server](#mcp-server) for AI agents.
 
 ## Quick start
 
-### Try it locally (5 minutes)
-
 ```bash
-# Install
 pip install -e .
 
 # Get a free Apify API token at https://console.apify.com/sign-up
 export APIFY_API_TOKEN=your_token
 
-# Search for jobs
+# Search
 job-monitor search --query "Software Engineer" --location "SF Bay Area" --source linkedin
 
 # Or use a config file
@@ -27,97 +20,53 @@ job-monitor config init --name "My Search"
 job-monitor run --config config.yml --dry-run
 ```
 
-### Set up daily monitoring (10 minutes)
+### Daily monitoring via GitHub Actions
 
 1. Fork this repo
-2. Copy `examples/software-engineer.yml` to `config.yml` and edit your search queries
-3. Add `APIFY_API_TOKEN` to your repo's GitHub Actions secrets
-4. Add `RESEND_API_KEY` for email notifications (optional, [get one free](https://resend.com))
-5. Push. The monitor runs daily at 7:15 AM Pacific via GitHub Actions
+2. Copy `examples/software-engineer.yml` to `config.yml`, edit your search queries
+3. Add `APIFY_API_TOKEN` to repo secrets
+4. Optionally add `RESEND_API_KEY` for email notifications ([resend.com](https://resend.com))
+5. Push. Runs daily at 7:15 AM Pacific.
 
-## Features
+## CLI
 
-- **4 job boards**: LinkedIn, Indeed, USAJobs, Google Jobs
-- **3-layer dedup**: Cross-source title+company matching, database memory, company proximity filtering
-- **SQLite storage**: Zero config. Works out of the box, no database setup
-- **Email digests**: HTML emails with job cards via [Resend](https://resend.com)
-- **Google Sheets**: Auto-sync new jobs to a tracking spreadsheet
-- **Decision-maker enrichment**: Find hiring manager contacts (advanced, optional)
-- **Cold email drafts**: AI-generated outreach emails via Claude (advanced, optional)
-- **MCP server**: Built-in [Model Context Protocol](https://modelcontextprotocol.io) server for AI agents
-- **Composable CLI**: Pipe `search | dedup | store | notify` independently
-- **GitHub Actions**: Free daily cron with included workflow template
-
-## CLI reference
-
-Every command supports `--output json|table|csv|quiet` and `--help` with examples.
-
-### run
-
-Run the full pipeline: search, dedup, store, notify.
+All commands support `--output json|table|csv|quiet` and `--help` with examples.
 
 ```bash
+# Full pipeline
 job-monitor run --config config.yml
 job-monitor run --config config.yml --dry-run
-job-monitor run --config config.yml --output json
-```
 
-### search
-
-Search job boards and output results.
-
-```bash
-job-monitor search --config config.yml
+# Search only
 job-monitor search --query "Backend Engineer" --location "SF Bay Area" --source linkedin
-job-monitor search --query "ML Engineer" --location "NYC" --source linkedin --source indeed --output json
-```
+job-monitor search --config config.yml --output json
 
-### dedup, store, notify
-
-Composable pipeline commands. Each reads JSON from stdin.
-
-```bash
-# Chain them together
+# Composable pipes
 job-monitor search --config config.yml --output json \
   | job-monitor dedup --db ./jobs.db --output json \
   | job-monitor store --db ./jobs.db
 
-# Notify from stored results
-job-monitor jobs list --db ./jobs.db --since 1d --output json \
-  | job-monitor notify --to me@example.com --subject-prefix "SWE"
-```
+# Config
+job-monitor config init --name "ML Search" --source indeed
+job-monitor config validate config.yml
 
-### config
-
-```bash
-job-monitor config init                                    # generate starter config
-job-monitor config init --name "ML Search" --source indeed # with options
-job-monitor config validate config.yml                     # check for errors
-```
-
-### jobs
-
-```bash
-job-monitor jobs list --db ./jobs.db                      # all stored jobs
-job-monitor jobs list --db ./jobs.db --since 7d           # last 7 days
-job-monitor jobs list --db ./jobs.db --status new --output json
+# Query stored jobs
+job-monitor jobs list --db ./jobs.db --since 7d --output json
 ```
 
 ## MCP server
 
-job-monitor includes a built-in MCP server for AI agent integration.
-
-### Setup for Claude Code
+Runs as a stdio MCP server for Claude Code, Cursor, and other agents.
 
 ```bash
+# One-command setup for Claude Code
 job-monitor install-mcp
+
+# Or start manually
+job-monitor mcp
 ```
 
-This adds job-monitor to your Claude Code MCP configuration. After restarting Claude Code, you can ask it things like "search for ML engineer jobs in NYC" and it will call job-monitor directly.
-
-### Manual setup
-
-Add to `~/.claude/settings.json`:
+Manual setup -- add to `~/.claude/settings.json`:
 
 ```json
 {
@@ -130,20 +79,11 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-### Available MCP tools
-
-| Tool | Description |
-|------|-------------|
-| `search_jobs` | Search job boards with queries, locations, and filters |
-| `dedup_jobs` | Filter out previously seen jobs against the database |
-| `store_jobs` | Save jobs to SQLite |
-| `list_jobs` | Query stored jobs with optional filters |
-| `run_monitor` | Run the full pipeline from a config file |
-| `validate_config` | Check a config file for errors |
+**Tools:** `search_jobs`, `dedup_jobs`, `store_jobs`, `list_jobs`, `run_monitor`, `validate_config`
 
 ## Configuration
 
-YAML config file with sensible defaults. Only `search_queries` and `locations` are required.
+YAML config. Only `search_queries` and `locations` are required.
 
 ```yaml
 name: "My Job Search"
@@ -178,53 +118,48 @@ notifications:
     accent_color: "#0066cc"
 ```
 
-See `examples/` for more config patterns.
+See `examples/` for more patterns.
 
 ## How it works
 
 ```
 search_queries x locations x sources
         |
-    [Apify actors scrape job boards]
+    Apify actors scrape job boards
         |
-    normalize URLs + filter by title/company/location/salary
+    normalize URLs, filter by title/company/location/salary
         |
     dedup layer 1: cross-source title+company key matching
         |
-    dedup layer 2: check against SQLite/Supabase database
+    dedup layer 2: check against SQLite database
         |
-    dedup layer 3: company proximity (one job per company per location)
+    dedup layer 3: one job per company per location
         |
-    (optional) enrich with decision-maker contacts
-        |
-    store new jobs + send email digest
+    store new jobs, send email digest
 ```
 
-## Advanced: Decision-maker enrichment
+## Optional features
 
-Find hiring manager contacts for each job posting. Requires additional API keys.
+**Email digests** -- HTML emails via [Resend](https://resend.com). Configure under `notifications.email` in your config.
+
+**Google Sheets** -- Auto-sync new jobs to a spreadsheet. `pip install job-monitor[sheets]`
+
+**Decision-maker enrichment** -- Find hiring manager contacts via Prospeo/AnyMailFinder and draft cold emails via Claude. `pip install job-monitor[enrichment]`
 
 ```yaml
 enrichment:
   enabled: true
   dm_title_queries: ["Engineering Manager", "VP of Engineering"]
-  dm_seniority_levels: ["Director", "Manager", "Head"]
   resume_context: |
-    About me:
-    - 3 years as a backend engineer
-    - Skills: Python, Go, PostgreSQL
+    3 years as a backend engineer. Python, Go, PostgreSQL.
   signer_name: "Alex"
 ```
 
-Required env vars: `PROSPEO_API_KEY` and/or `APIFY_API_TOKEN`. Optional: `ANYMAILFINDER_API_KEY`, `ANTHROPIC_API_KEY` (for cold email drafts).
+Requires `PROSPEO_API_KEY`. Optional: `ANYMAILFINDER_API_KEY`, `ANTHROPIC_API_KEY`.
 
 ## Cost
 
-- **GitHub Actions**: Free for public repos
-- **Apify**: Free tier includes ~$5/month of credits. A typical daily search (2 queries x 2 locations x 1 source) costs ~$0.10/day
-- **Resend**: Free tier includes 100 emails/day
-- **SQLite**: Free (local file, no service needed)
-- **Supabase**: Free tier available if you want cloud storage
+GitHub Actions is free for public repos. Apify's free tier covers light usage (~$0.10/day for a typical search). Resend's free tier covers 100 emails/day. SQLite is a local file.
 
 ## License
 
