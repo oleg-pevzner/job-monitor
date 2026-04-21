@@ -32,7 +32,7 @@ brief call. Keep it casual and specific.
 - Never use em dashes or en dashes. Use commas, periods, or "and" instead.
 - Return ONLY the email body (the middle part). No greeting, no signature."""
 
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_MODEL = "claude-opus-4-7"
 
 
 def draft_cold_emails(jobs: list[dict], config: dict) -> None:
@@ -75,10 +75,13 @@ def draft_cold_emails(jobs: list[dict], config: dict) -> None:
 
         try:
             response = client.messages.create(
-                model=model, max_tokens=500, system=system_prompt,
+                model=model,
+                max_tokens=2048,
+                thinking={"type": "adaptive"},
+                system=system_prompt,
                 messages=[{"role": "user", "content": user_message}],
             )
-            body = response.content[0].text if response.content else ""
+            body = next((b.text for b in response.content if b.type == "text"), "")
             if body:
                 first_name = dm_name.split()[0] if dm_name else "there"
                 sign_off = f"\n\nBest,\n{signer_name}" if signer_name else ""
