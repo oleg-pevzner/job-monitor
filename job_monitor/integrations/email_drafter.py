@@ -32,7 +32,7 @@ brief call. Keep it casual and specific.
 - Never use em dashes or en dashes. Use commas, periods, or "and" instead.
 - Return ONLY the email body (the middle part). No greeting, no signature."""
 
-DEFAULT_MODEL = "claude-opus-4-7"
+DEFAULT_MODEL = "claude-opus-4-8"
 
 
 def draft_cold_emails(jobs: list[dict], config: dict) -> None:
